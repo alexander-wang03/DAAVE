@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI  # Import OpenAI client class from the new library
 from dotenv import load_dotenv
 import time
 import speech_recognition as sr
@@ -8,20 +8,37 @@ from gtts import gTTS
 
 # Load environment variables
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
-model = 'gpt-4-turbo'  # Specify GPT-4-turbo model
+# Instantiate the OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+model = 'gpt-4o-mini'  # Specify GPT-4o-mini model
 r = sr.Recognizer()
 name = "Alex"
 greetings = [
-    f"whats up master {name}",
-    "yeah?",
+    f"What's up master {name}",
+    "Yeah?",
     "Well, hello there, Master of Puns and Jokes - how's it going today?",
     f"Ahoy there, Captain {name}! How's the ship sailing?",
     f"Bonjour, Monsieur {name}! Comment ça va? Wait, why the hell am I speaking French?"
 ]
 
-# Listen for the wake word "hey"
+# Main function to handle both voice and text input/output
+def main():
+    mode = "text"  # Change to "voice" for voice input/output or "text" for text input/output
+    if mode == "voice":
+        with sr.Microphone() as source:
+            listen_for_wake_word(source)
+    elif mode == "text":
+        while True:
+            text = input("Enter text: ").strip()
+            if text.lower() == "exit":
+                print("Exiting...")
+                break
+            response_text = get_response(text)
+            print(f"Response: {response_text}")
+
+# Listen for the wake word "hey" (Voice Mode)
 def listen_for_wake_word(source):
     print("Listening for 'Hey'...")
     while True:
@@ -47,13 +64,8 @@ def listen_and_respond(source):
             if not text:
                 continue
 
-            # Send input to OpenAI API
-            response = openai.ChatCompletion.create(
-                model="gpt-4-turbo",
-                messages=[{"role": "user", "content": f"{text}"}]
-            )
-            response_text = response.choices[0].message.content
-            print(response_text)
+            # Get response from OpenAI
+            response_text = get_response(text)
 
             # Generate audio with gTTS
             if response_text:
@@ -76,11 +88,19 @@ def listen_and_respond(source):
             listen_for_wake_word(source)
             break
 
+# Updated get_response function to use the instantiated client
+def get_response(user_text):
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": user_text}]
+    )
+    return response.choices[0].message.content
+
+# Speak function for Voice Mode
 def speak(text):
     myobj = gTTS(text=text, lang='en', slow=False)
     myobj.save("greeting.mp3")
     os.system("omxplayer greeting.mp3")
 
-# Use the default microphone as the audio source
-with sr.Microphone() as source:
-    listen_for_wake_word(source)
+# Run the main function
+main()

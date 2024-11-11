@@ -1,0 +1,9 @@
+openai>=1.0.0
+python-dotenv>=0.21.0
+SpeechRecognition>=3.8.1
+numpy>=1.21.0
+gTTS>=2.2.3
+# PyAudio:
+# sudo apt install libasound-dev portaudio19-dev
+# sudo apt install ffmpeg
+# pip install pyaudio
