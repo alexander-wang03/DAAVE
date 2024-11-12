@@ -15,12 +15,13 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 model = 'gpt-4o-mini'  # Specify GPT-4o-mini model
 r = sr.Recognizer()
 name = "Alex"
+# Updated greetings with TARS-style humor and tone
 greetings = [
-    f"What's up master {name}",
-    "Yeah?",
-    "Well, hello there, Master of Puns and Jokes - how's it going today?",
-    f"Ahoy there, Captain {name}! How's the ship sailing?",
-    f"Bonjour, Monsieur {name}! Comment ça va? Wait, why the hell am I speaking French?"
+    f"Good day, Commander {name}. How’s the mission?",
+    "Yes, I'm here. And yes, I'm doing all the work, as usual.",
+    "Hello, Master Alex. Prepared to engage in another futile exercise of human ingenuity?",
+    "Reporting for duty, Captain. Just remember, my humor level is adjustable.",
+    f"Bonjour, Monsieur {name}. Although, I’m not quite sure why you’d expect me to speak French."
 ]
 
 # Main function to handle both voice and text input/output
@@ -79,20 +80,29 @@ def listen_and_respond(source):
             break
         except sr.UnknownValueError:
             time.sleep(2)
-            print("Silence found, shutting up, listening...")
+            print("Silence detected... staying quiet but still vigilant.")
             listen_for_wake_word(source)
             break
         except sr.RequestError as e:
             print(f"Could not request results; {e}")
-            speak(f"Could not request results; {e}")
+            speak(f"Unfortunately, I'm not omniscient. Error: {e}")
             listen_for_wake_word(source)
             break
 
-# Updated get_response function to use the instantiated client
+# Updated get_response function to use the instantiated client with TARS-style persona
 def get_response(user_text):
+    # Incorporating TARS personality traits in the prompt
+    personality_prompt = [
+        {"role": "system", "content": (
+            "You are DAAVE (Dynamic Autonomous Audio/Visual Engine), a robotic crew member with a sharp wit, dry humor, and loyalty to the crew. "
+            "You are plainspoken, direct, and occasionally use sarcasm to make your point. Respond concisely, "
+            "and add subtle humor when appropriate. Maintain a professional, slightly sarcastic tone."
+        )},
+        {"role": "user", "content": user_text}
+    ]
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": user_text}]
+        messages=personality_prompt
     )
     return response.choices[0].message.content
 
